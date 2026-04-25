@@ -1,0 +1,181 @@
+# JSON-schema for Source Card YAML files.
+#
+# Every file under sources/<country>/*.yaml is validated against this
+# schema in CI. Breaking this schema triggers the `make sources-validate`
+# job; the Source Card cannot be loaded by the scheduler until valid.
+#
+# Keep this schema aligned with libs/schemas/source.py::Source. If they
+# diverge, prefer the pydantic model; this schema is a human-facing
+# documentation + CI gate, not the canonical contract.
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://dip.local/schemas/source-card.json"
+title: Source Card
+type: object
+additionalProperties: false
+
+required:
+  - source_id
+  - name
+  - country
+  - language
+  - tier
+  - category
+  - jurisdiction_class
+  - connector
+  - fetch_mode
+  - base_url
+  - schedule
+  - owner
+  - legal_review
+
+properties:
+
+  source_id:
+    type: string
+    pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+    minLength: 3
+    maxLength: 120
+    description: "Kebab-case, country-prefixed. Stable across versions."
+
+  name:
+    type: string
+    minLength: 2
+    maxLength: 300
+
+  # Workbook provenance (optional, preserved for audit)
+  workbook_country: { type: [string, "null"] }
+  workbook_category: { type: [string, "null"] }
+  workbook_row: { type: [integer, "null"], minimum: 1 }
+
+  country:
+    type: string
+    enum: [IT, DE, FR, UK, ES, NL, CH, AE, SA, EU, XX]
+
+  language:
+    type: string
+    enum: [it, de, fr, es, nl, en, ar, multi]
+
+  tier:
+    type: integer
+    enum: [1, 2, 3]
+
+  category:
+    type: string
+    enum: [GAZ, COURT, "INS-REG", AUCT, REG, CRED, NEWS, REGU, MKT, UNKNOWN]
+
+  jurisdiction_class:
+    type: string
+    enum:
+      - eu_gdpr
+      - eea_gdpr_adequacy
+      - non_eu_separate_regime
+      - global_case_by_case
+
+  connector:
+    type: string
+    enum:
+      - APIConnector
+      - BulkConnector
+      - HttpScrapeConnector
+      - HeadlessConnector
+      - ManualConnector
+
+  fetch_mode:
+    type: string
+    enum: ["list+detail", "rss", "api", "bulk", "webhook"]
+
+  base_url:
+    type: string
+    format: uri
+    pattern: "^https?://"
+
+  schedule:
+    type: object
+    additionalProperties: false
+    required: [cron]
+    properties:
+      cron: { type: string, minLength: 9 }
+      timezone: { type: string, default: "Europe/Rome" }
+      business_hours_only: { type: boolean, default: false }
+      off_hours_cron: { type: [string, "null"] }
+
+  politeness:
+    type: object
+    additionalProperties: false
+    properties:
+      min_delay_s: { type: number, minimum: 0, maximum: 600, default: 4 }
+      max_delay_s: { type: number, minimum: 0, maximum: 3600, default: 9 }
+      concurrency: { type: integer, minimum: 1, maximum: 32, default: 1 }
+      user_agent_pool: { type: string, default: "default_eu" }
+      respect_robots: { type: boolean, default: true }
+      proxy_pool: { type: [string, "null"] }
+      requests_per_minute:
+        type: [integer, "null"]
+        minimum: 1
+        maximum: 6000
+
+  parser:
+    type: [string, "null"]
+    pattern: "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
+    description: "Python module path, e.g. 'parsers.it.tribunale_milano_v1'."
+
+  legal_review:
+    type: object
+    additionalProperties: false
+    required: [verdict]
+    properties:
+      verdict:
+        type: string
+        enum: [pending, in_review, approved, rejected]
+      date: { type: [string, "null"], format: date-time }
+      reviewer: { type: [string, "null"], format: email }
+      lia_path: { type: [string, "null"] }
+      notes: { type: [string, "null"] }
+
+  owner:
+    type: string
+    minLength: 1
+    maxLength: 120
+
+  on_failure:
+    type: object
+    additionalProperties: false
+    properties:
+      alert_channel: { type: string, default: "slack#ingest-alerts" }
+      severity_after_minutes: { type: integer, minimum: 1, maximum: 1440, default: 30 }
+      circuit_breaker_after_consecutive: { type: integer, minimum: 1, maximum: 100, default: 5 }
+      circuit_breaker_window_minutes: { type: integer, minimum: 1, maximum: 1440, default: 30 }
+
+  cost_budget_eur_month:
+    type: [integer, "null"]
+    minimum: 0
+    maximum: 100000
+
+  release_wave:
+    type: [integer, "null"]
+    minimum: 1
+    maximum: 8
+
+  in_priority_scope:
+    type: boolean
+    default: false
+
+  enabled:
+    type: boolean
+    default: false
+
+  notes: { type: [string, "null"] }
+
+# ── Cross-field gate (draft 2020-12 supports conditionals) ──────────
+allOf:
+  - if:
+      properties:
+        enabled: { const: true }
+    then:
+      # If enabled is true, legal_review.verdict MUST be "approved"
+      properties:
+        legal_review:
+          properties:
+            verdict: { const: approved }
+          required: [verdict]

@@ -1,0 +1,73 @@
+# ── Python ──────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ── Virtualenvs ─────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+.tox/
+
+# ── Test & coverage ─────────────────────────────────────────────────
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+
+# ── Node / frontend ─────────────────────────────────────────────────
+node_modules/
+services/web/dist/
+services/web/.vite/
+services/web/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Editors ─────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# ── Secrets (tripwires) ─────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+.secrets/
+
+# ── Terraform ───────────────────────────────────────────────────────
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+
+# ── Artifacts ───────────────────────────────────────────────────────
+sbom.json
+*.log
+logs/
+tmp/
+scratch/
+
+# ── Alembic autogen diffs ───────────────────────────────────────────
+alembic/versions/*_autogen_*
+
+# ── Raw captures kept locally during dev (never commit real data) ───
+raw-captures/
+local-data/

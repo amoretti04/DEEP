@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CANARY FIXTURE — NOT REAL PUBLIC DATA.
+  Synthetic representative BODACC-B daily bulletin. Real BODACC files
+  are much larger and follow DILA's published XSD. Replace before
+  enabling this connector in production.
+-->
+<BODACC_B>
+  <parution>
+    <dateParution>2026-04-15</dateParution>
+    <numeroParution>BODACC_B_20260415_075</numeroParution>
+  </parution>
+
+  <annonce>
+    <numeroAnnonce>1001</numeroAnnonce>
+    <dateParution>2026-04-15</dateParution>
+    <tribunal>Tribunal de commerce de Paris</tribunal>
+    <personne>
+      <denomination>Exemple Manufacture SARL</denomination>
+      <formeJuridique>SARL</formeJuridique>
+      <numeroImmatriculation>
+        <siren>123456789</siren>
+        <rcs>Paris B 123 456 789</rcs>
+      </numeroImmatriculation>
+      <codeAPE>2511Z</codeAPE>
+    </personne>
+    <procedureCollective>
+      <typeProcedure>LJ</typeProcedure>
+      <dateJugement>2026-04-12</dateJugement>
+    </procedureCollective>
+    <mandataire>
+      <nom>Maître Jean Dupont</nom>
+      <qualite>Liquidateur judiciaire</qualite>
+    </mandataire>
+  </annonce>
+
+  <annonce>
+    <numeroAnnonce>1002</numeroAnnonce>
+    <dateParution>2026-04-15</dateParution>
+    <tribunal>Tribunal de commerce de Lyon</tribunal>
+    <personne>
+      <denomination>Société Nouvelle Technique SAS</denomination>
+      <formeJuridique>SAS</formeJuridique>
+      <numeroImmatriculation>
+        <siren>987654321</siren>
+        <rcs>Lyon B 987 654 321</rcs>
+      </numeroImmatriculation>
+      <codeAPE>6201Z</codeAPE>
+    </personne>
+    <procedureCollective>
+      <typeProcedure>RJ</typeProcedure>
+      <dateJugement>2026-04-10</dateJugement>
+    </procedureCollective>
+    <mandataire>
+      <nom>SELARL Martin &amp; Associés</nom>
+      <qualite>Administrateur judiciaire</qualite>
+    </mandataire>
+  </annonce>
+
+  <annonce>
+    <numeroAnnonce>1003</numeroAnnonce>
+    <dateParution>2026-04-15</dateParution>
+    <tribunal>Tribunal de commerce de Marseille</tribunal>
+    <personne>
+      <denomination>Atelier du Sud EURL</denomination>
+      <formeJuridique>EURL</formeJuridique>
+      <numeroImmatriculation>
+        <siren>555444333</siren>
+        <rcs>Marseille B 555 444 333</rcs>
+      </numeroImmatriculation>
+      <codeAPE>4339Z</codeAPE>
+    </personne>
+    <procedureCollective>
+      <typeProcedure>SV</typeProcedure>
+      <dateJugement>2026-04-11</dateJugement>
+    </procedureCollective>
+    <mandataire>
+      <nom>Maître Sophie Bernard</nom>
+      <qualite>Mandataire judiciaire</qualite>
+    </mandataire>
+  </annonce>
+</BODACC_B>

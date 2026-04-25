@@ -1,0 +1,26 @@
+{
+  "natural_key": "4523/2026",
+  "fields": {
+    "debtor_name": "Esempio Manifatture S.p.A.",
+    "case_number": "4523/2026",
+    "court_case_number": "4523/2026",
+    "court_name": "Tribunale di Milano — Sezione Fallimentare",
+    "jurisdiction": "IT",
+    "proceeding_type": "LIQUIDATION",
+    "proceeding_type_original": "Liquidazione giudiziale",
+    "opened_at": "2026-04-15",
+    "judge_name": "Dott.ssa Maria Bianchi",
+    "administrator_name": "Avv. Carlo Verdi",
+    "administrator_role": "Curatore fallimentare",
+    "codice_fiscale": "02468013579",
+    "piva": "02468013579",
+    "first_creditor_meeting_at": "2026-07-12T09:30:00+02:00"
+  },
+  "provenance_fields": [
+    "debtor_name", "case_number", "proceeding_type_original",
+    "opened_at", "administrator_name", "administrator_role",
+    "codice_fiscale", "piva", "judge_name",
+    "first_creditor_meeting_at"
+  ],
+  "confidence": 1.0
+}

@@ -1,0 +1,26 @@
+{
+  "natural_key": "Amtsgericht Köln|IN 2345/26",
+  "fields": {
+    "court_name": "Amtsgericht Köln",
+    "case_number": "IN 2345/26",
+    "court_case_number": "IN 2345/26",
+    "jurisdiction": "DE",
+    "debtor_name": "Musterwerke GmbH",
+    "debtor_address": "Hauptstraße 12, 50667 Köln",
+    "hrb_number": "HRB 987654",
+    "hrb_number_numeric": "987654",
+    "proceeding_type": "LIQUIDATION",
+    "proceeding_type_original": "Regelinsolvenzverfahren",
+    "opened_at": "2026-04-18",
+    "administrator_name": "Dr. Anna Schmidt",
+    "administrator_address": "Kanzlei Schmidt & Partner, Domstraße 5, 50668 Köln",
+    "first_creditor_meeting_at": "2026-06-24T10:00:00+02:00"
+  },
+  "provenance_fields": [
+    "court_name", "case_number", "debtor_name", "debtor_address",
+    "hrb_number", "proceeding_type_original", "opened_at",
+    "administrator_name", "administrator_address",
+    "first_creditor_meeting_at"
+  ],
+  "confidence": 1.0
+}

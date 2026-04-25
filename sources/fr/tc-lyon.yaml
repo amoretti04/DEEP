@@ -1,0 +1,46 @@
+# R3 addition — ADR-0006
+source_id: fr-tc-lyon
+name: "Tribunal de Commerce de Lyon"
+country: FR
+language: fr
+tier: 1
+category: COURT
+jurisdiction_class: eu_gdpr
+
+connector: HttpScrapeConnector
+fetch_mode: "list+detail"
+base_url: https://www.greffe-tc-lyon.fr
+
+schedule:
+  cron: "0 */3 * * *"
+  timezone: Europe/Paris
+  business_hours_only: true
+  off_hours_cron: "0 */6 * * *"
+
+politeness:
+  min_delay_s: 4
+  max_delay_s: 9
+  concurrency: 1
+  user_agent_pool: default_eu
+  respect_robots: true
+
+parser: parsers.fr.tc_lyon_v1
+
+owner: unassigned
+
+# Approved-by-default per ADR-0004.
+legal_review:
+  verdict: approved
+  date: 2026-04-21
+  reviewer: system-default@dip.example
+  notes: "Approved by default per ADR-0004."
+  lia_path: docs/lia/fr/tc-lyon.md
+
+on_failure:
+  alert_channel: "slack#ingest-alerts"
+  severity_after_minutes: 30
+
+# ADR-0006: parser scaffold, not yet verified against a real captured page.
+# Flip to 'verified' after scripts/verify_selectors.py confirms the selectors.
+status: unverified
+enabled: false

@@ -1,0 +1,237 @@
+# DIP local-dev stack. One-command `make compose-up` gives you the full §5
+# CLAUDE.md runtime locally: Postgres, Redis, Minio (S3), OpenSearch, Kafka,
+# Temporal, Prefect. Cloud-only pieces (EKS, ArgoCD, NLLB-200 full model)
+# are scaffolded under infra/terraform and infra/k8s with production config.
+#
+# Notes:
+# - No published ports to localhost in CI; only on the dev workstation.
+# - All passwords here are LOCAL-ONLY defaults; real env uses Vault/SSM.
+# - Temporal ships with its own Postgres instance to avoid schema coupling
+#   with the DIP canonical database.
+
+name: dip
+
+networks:
+  dip:
+    driver: bridge
+
+volumes:
+  pg-data:
+  temporal-pg-data:
+  redis-data:
+  minio-data:
+  opensearch-data:
+  kafka-data:
+  prefect-data:
+  nllb-model-cache:
+
+services:
+
+  # ── Canonical DB ───────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dip
+      POSTGRES_PASSWORD: dip_local_only
+      POSTGRES_DB: dip
+    volumes: [pg-data:/var/lib/postgresql/data]
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dip -d dip"]
+      interval: 5s
+      retries: 10
+    networks: [dip]
+
+  # ── Redis (rate limiting, cache) ──────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes: [redis-data:/data]
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+    networks: [dip]
+
+  # ── Minio (S3-compatible raw lake in dev) ─────────────────────────
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes: [minio-data:/data]
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Console UI
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      retries: 10
+    networks: [dip]
+
+  minio-bootstrap:
+    image: minio/mc:latest
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minioadmin minioadmin;
+      mc mb -p local/dip-raw;
+      mc mb -p local/dip-parsed;
+      mc version enable local/dip-raw;
+      mc ilm add --expiry-days 2555 local/dip-raw || true;
+      exit 0;
+      "
+    networks: [dip]
+
+  # ── OpenSearch ─────────────────────────────────────────────────────
+  opensearch:
+    image: opensearchproject/opensearch:2.17.1
+    environment:
+      discovery.type: single-node
+      bootstrap.memory_lock: "true"
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: admin_local_only
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      DISABLE_SECURITY_PLUGIN: "true"   # dev only; prod uses TLS + auth
+      OPENSEARCH_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      nofile: { soft: 65536, hard: 65536 }
+    volumes: [opensearch-data:/usr/share/opensearch/data]
+    ports: ["9200:9200"]
+    networks: [dip]
+
+  # ── Kafka (KRaft mode, no zookeeper) ──────────────────────────────
+  kafka:
+    image: bitnami/kafka:3.8
+    environment:
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    volumes: [kafka-data:/bitnami/kafka]
+    ports: ["9092:9092"]
+    networks: [dip]
+
+  # ── Temporal (stateful workflows) ─────────────────────────────────
+  temporal-postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: temporal
+      POSTGRES_PASSWORD: temporal
+      POSTGRES_DB: temporal
+    volumes: [temporal-pg-data:/var/lib/postgresql/data]
+    networks: [dip]
+
+  temporal:
+    image: temporalio/auto-setup:1.25.2
+    depends_on: [temporal-postgres]
+    environment:
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: temporal
+      POSTGRES_PWD: temporal
+      POSTGRES_SEEDS: temporal-postgres
+      DEFAULT_NAMESPACE: dip
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
+    ports: ["7233:7233"]
+    networks: [dip]
+
+  temporal-ui:
+    image: temporalio/ui:2.32.0
+    depends_on: [temporal]
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CORS_ORIGINS: http://localhost:3000
+    ports: ["8080:8080"]
+    networks: [dip]
+
+  # ── Prefect server (orchestration) ────────────────────────────────
+  prefect:
+    image: prefecthq/prefect:3.1-python3.12
+    command: prefect server start --host 0.0.0.0
+    environment:
+      PREFECT_UI_API_URL: http://localhost:4200/api
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://dip:dip_local_only@postgres:5432/prefect
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports: ["4200:4200"]
+    volumes: [prefect-data:/root/.prefect]
+    networks: [dip]
+
+  # ── OpenTelemetry collector (optional local observability) ────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.115.1
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    networks: [dip]
+    profiles: ["observability"]
+
+  # ── Translation: stub service (default profile) ───────────────────
+  # Runs under the default `compose-up` and is what the API talks to
+  # unless the operator explicitly brings up the real model. Zero deps,
+  # starts in seconds. See ADR-0005 for the design.
+  translation-stub:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ../services/translation:/app/services/translation:ro
+      - ../libs:/app/libs:ro
+    command: >
+      sh -c "
+        pip install --quiet fastapi uvicorn pydantic &&
+        cd /app &&
+        python -m uvicorn services.translation.stub:app --host 0.0.0.0 --port 8088
+      "
+    ports: ["8088:8088"]
+    networks: [dip]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8088/health\")'"]
+      interval: 10s
+      retries: 6
+
+  # ── Translation: NLLB-200 (opt-in profile) ────────────────────────
+  # Large image, large model download on first boot (~2.4 GB). Only
+  # starts when the operator explicitly brings up the `nllb` profile:
+  #   docker compose --profile nllb up translation-nllb
+  # And the app-side feature flag (UserSettings.translation.enabled)
+  # must ALSO be on for translations to actually be requested.
+  # Note: NLLB-200 is CC-BY-NC; for commercial deployment replace with
+  # a commercially licensed model. ADR-0005 §"Model license" item.
+  translation-nllb:
+    image: python:3.12-slim
+    working_dir: /app
+    volumes:
+      - ../services/translation:/app/services/translation:ro
+      - ../libs:/app/libs:ro
+      - nllb-model-cache:/root/.cache/huggingface
+    environment:
+      NLLB_MODEL: facebook/nllb-200-distilled-600M
+      NLLB_DEVICE: cpu           # override to cuda:0 if GPU is available
+      NLLB_MAX_LENGTH: "512"
+      HF_HOME: /root/.cache/huggingface
+    command: >
+      sh -c "
+        pip install --quiet fastapi uvicorn pydantic transformers torch sentencepiece &&
+        cd /app &&
+        python -m uvicorn services.translation.nllb:app --host 0.0.0.0 --port 8088
+      "
+    ports: ["8089:8088"]     # distinct host port so you can run both side-by-side
+    networks: [dip]
+    profiles: ["nllb"]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8088/health\")'"]
+      interval: 30s
+      start_period: 120s     # model load is slow on CPU
+      retries: 10

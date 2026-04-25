@@ -1,0 +1,189 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dip"
+version = "0.1.0"
+description = "Distressed Investment Intelligence Platform"
+requires-python = ">=3.12"
+readme = "README.md"
+license = { text = "Proprietary" }
+authors = [{ name = "DIP Platform Team" }]
+dependencies = [
+    # --- API & web layer ---
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "starlette>=0.41",
+    # --- Schemas & validation ---
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "ulid-py>=1.1",
+    # --- Database ---
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30",
+    "alembic>=1.14",
+    # --- HTTP & scraping ---
+    "httpx>=0.28",
+    "tenacity>=9.0",
+    "selectolax>=0.3.21",
+    "lxml>=5.3",
+    # --- Redis & rate limiting ---
+    "redis>=5.2",
+    # --- Object storage ---
+    "boto3>=1.35",
+    "botocore>=1.35",
+    # --- Orchestration ---
+    "prefect>=3.1",
+    # --- Messaging ---
+    "aiokafka>=0.12",
+    # --- Search ---
+    "opensearch-py>=2.8",
+    # --- Extraction ---
+    "pdfplumber>=0.11",
+    "pymupdf>=1.24",
+    # --- Config / YAML ---
+    "pyyaml>=6.0",
+    "jsonschema>=4.23",
+    # --- Spreadsheet import ---
+    "openpyxl>=3.1",
+    "pandas>=2.2",
+    # --- Observability ---
+    "structlog>=24.4",
+    "opentelemetry-api>=1.28",
+    "opentelemetry-sdk>=1.28",
+    "opentelemetry-instrumentation-fastapi>=0.49b0",
+    "prometheus-client>=0.21",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8",
+    "mypy>=1.13",
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=6.0",
+    "pytest-httpserver>=1.1",
+    "respx>=0.22",
+    "testcontainers[postgres,redis,kafka,opensearch]>=4.8",
+    "types-pyyaml>=6.0",
+    "types-jsonschema>=4.23",
+    "pre-commit>=4.0",
+    "detect-secrets>=1.5",
+]
+# NLP is heavy; kept optional so base dev image stays lean.
+nlp = [
+    "spacy>=3.8",
+    "stanza>=1.9",
+    "fasttext-langdetect>=1.0",
+    "sentence-transformers>=3.3",
+]
+
+[project.scripts]
+dip-blueprint-import = "scripts.blueprint_import:main"
+dip-onboard-source = "scripts.onboard_source:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["libs", "services", "scripts"]
+
+# ------------------------------------------------------------
+# Ruff — lint + format. Keep the list strict; suppressions go
+# via per-file noqa, never a blanket ignore in this block.
+# ------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["libs", "services", "scripts", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "W",    # pycodestyle
+    "F",          # pyflakes
+    "I",          # isort
+    "B",          # flake8-bugbear
+    "UP",         # pyupgrade
+    "N",          # pep8-naming
+    "S",          # flake8-bandit (security)
+    "ASYNC",      # asyncio bugs
+    "C4",         # comprehensions
+    "SIM",        # simplify
+    "TCH",        # type-checking imports
+    "PL",         # pylint
+    "RUF",        # ruff-specific
+]
+ignore = [
+    "E501",       # line length handled by formatter
+    "PLR0913",    # too many args — ok for config-heavy connectors
+    "S101",       # assert in tests is fine
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S", "PLR2004"]           # test conveniences
+"scripts/**/*.py" = ["T201"]                  # print in scripts OK
+"libs/*/tests/**/*.py" = ["S", "PLR2004"]
+"services/*/tests/**/*.py" = ["S", "PLR2004"]
+
+# ------------------------------------------------------------
+# Mypy — strict. CI fails on any new `type: ignore` without
+# a linked issue in the comment (enforced by a custom check).
+# ------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+no_implicit_reexport = true
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+    "selectolax.*",
+    "stanza.*",
+    "pdfplumber.*",
+    "fitz.*",
+    "ulid.*",
+    "boto3.*",
+    "botocore.*",
+]
+ignore_missing_imports = true
+
+# ------------------------------------------------------------
+# Pytest
+# ------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+asyncio_mode = "auto"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--tb=short",
+    "-ra",
+]
+testpaths = ["libs", "services", "tests"]
+markers = [
+    "integration: integration tests (require testcontainers)",
+    "canary: parser canary regression tests",
+    "flaky: quarantined flaky tests with linked issue",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:pydantic.*",
+]
+
+[tool.coverage.run]
+source = ["libs", "services", "scripts"]
+branch = true
+omit = ["*/tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+fail_under = 85
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]

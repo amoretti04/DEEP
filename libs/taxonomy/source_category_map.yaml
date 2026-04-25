@@ -1,0 +1,391 @@
+# Source category normalization.
+#
+# The blueprint workbook contains 200+ free-text category labels, mostly
+# singletons. This file maps them onto the 9 canonical codes defined in
+# CLAUDE.md §5.1.
+#
+# Strategy: exact match first, then keyword-pattern match, then UNKNOWN.
+# UNKNOWN entries are surfaced in the importer's review queue, never
+# silently bucketed.
+#
+# When you add a source and its category is not yet mapped, either add an
+# exact-match entry here or extend the keyword patterns. Never broaden a
+# pattern so aggressively that it swallows unrelated categories — a false
+# mapping is harder to detect than an UNKNOWN.
+
+# ── 9 canonical codes (CLAUDE.md §5.1) ───────────────────────────────
+codes:
+  GAZ: "Official gazette / state bulletin"
+  COURT: "Bankruptcy tribunal or commercial/insolvency court"
+  INS-REG: "Insolvency register (national)"
+  AUCT: "Judicial or industrial auction platform"
+  REG: "Company / commercial registry"
+  CRED: "Credit bureau or business-information provider"
+  NEWS: "Financial press / insolvency news"
+  REGU: "Regulator / supervisory authority"
+  MKT: "Market data / listed-company distress disclosures"
+
+# ── Exact matches (highest priority) ─────────────────────────────────
+# The left side is a normalized (lowercased, whitespace-collapsed) form
+# of the workbook's Category column.
+exact:
+  # GAZ
+  "official gazette": GAZ
+  "federal gazette": GAZ
+  "official journal": GAZ
+  "official business gazette": GAZ
+  "provincial official gazette": GAZ
+  "autonomous community gazette": GAZ
+  "cantonal official gazette": GAZ
+  "legal notices": GAZ
+  "legal notices aggregator": GAZ
+  "legal notices / news": GAZ
+
+  # COURT
+  "bankruptcy tribunal": COURT
+  "insolvency court": COURT
+  "commercial court": COURT
+  "district court": COURT
+  "specialist insolvency court": COURT
+  "judicial tribunal": COURT
+  "special jurisdiction court": COURT
+  "emirate courts": COURT
+  "supreme court": COURT
+  "supreme civil court (scotland)": COURT
+  "state justice portal": COURT
+  "judicial portal": COURT
+  "courts system": COURT
+  "ministry of justice portal": COURT
+  "ministry of justice": COURT
+  "court hearings calendar": COURT
+  "court registry": COURT
+  "judicial e-services": COURT
+
+  # INS-REG
+  "official insolvency register": INS-REG
+  "official bankruptcy register": INS-REG
+  "insolvency information portal": INS-REG
+  "insolvency info portal": INS-REG
+  "insolvency news / data portal": INS-REG
+  "insolvency news portal": INS-REG
+  "starug register": INS-REG
+  "bankruptcy procedure portal": INS-REG
+  "open data – insolvencies": INS-REG
+  "case data aggregator": INS-REG
+  "debt enforcement register": INS-REG
+  "cantonal debt enforcement office": INS-REG
+  "cantonal bankruptcy office": INS-REG
+  "crisis composition body": INS-REG
+  "government – large-company insolvency": INS-REG
+  "government – scottish insolvency": INS-REG
+  "government – ni insolvency": INS-REG
+  "government restructuring body": INS-REG
+  "ministry / restructuring committee": INS-REG
+  "official bankruptcy commission": INS-REG
+
+  # AUCT
+  "judicial auction aggregator": AUCT
+  "judicial auction platform": AUCT
+  "judicial/industrial auction aggregator": AUCT
+  "industrial / insolvency auction": AUCT
+  "industrial auction": AUCT
+  "industrial auction platform": AUCT
+  "industrial auction (global)": AUCT
+  "insolvency auction platform": AUCT
+  "insolvency auction house": AUCT
+  "insolvency auctioneers": AUCT
+  "insolvency auctioneers / valuers": AUCT
+  "insolvency marketplace": AUCT
+  "auction portal": AUCT
+  "auction platform": AUCT
+  "auction house": AUCT
+  "auction house network": AUCT
+  "auction aggregator": AUCT
+  "official judicial sales portal": AUCT
+  "official auction portal": AUCT
+  "official auctions portal": AUCT
+  "official auction platform": AUCT
+  "bankruptcy auction platform": AUCT
+  "bankruptcy portal / pvp aggregator": AUCT
+  "regional judicial sale institute": AUCT
+  "national association of judicial sale institutes": AUCT
+  "notarial auction network": AUCT
+  "public/auction platform": AUCT
+  "judicial auctioneer": AUCT
+  "judicial sale portal": AUCT
+  "court auction portal": AUCT
+  "business asset auction": AUCT
+  "online auction platform": AUCT
+  "commercial asset marketplace": AUCT
+  "ip-driven marketplace": AUCT
+  "electronic judicial auction platform": AUCT
+  "special administration listings": AUCT
+  "industrial asset broker": AUCT
+  "industrial asset marketplace": AUCT
+  "industrial asset manager": AUCT
+  "industrial auctioneer": AUCT
+  "asset liquidation": AUCT
+  "asset valuation & disposition": AUCT
+  "asset manager / auctioneer": AUCT
+  "asset advisor / auctioneer": AUCT
+  "distressed business marketplace": AUCT
+  "distressed opportunities portal": AUCT
+
+  # REG
+  "company registry": REG
+  "company register": REG
+  "commercial register": REG
+  "commercial registry": REG
+  "companies registry": REG
+  "registry": REG
+  "chamber of commerce": REG
+  "chamber of commerce federation": REG
+  "court clerks portal / company registry": REG
+  "registrars association / company registry": REG
+  "central credit register": REG
+  "ministry / company registry": REG
+  "federal company index": REG
+  "register (personal)": REG
+
+  # CRED
+  "credit bureau": CRED
+  "credit rating / business info": CRED
+  "credit rating (esma-registered)": CRED
+  "credit rating (regional)": CRED
+  "credit insurance": CRED
+  "credit insurance / ratings": CRED
+  "credit insurance / research": CRED
+  "credit risk database": CRED
+  "credit analytics": CRED
+  "credit loss database": CRED
+  "credit research": CRED
+  "credit recovery association": CRED
+  "credit management / npl": CRED
+  "credit management / npl servicer": CRED
+  "covenant research": CRED
+  "business information": CRED
+  "business info / credit rating": CRED
+  "business info (d&b)": CRED
+  "business information (crédito y caución)": CRED
+  "mena business info": CRED
+  "global business info": CRED
+  "global corporate database": CRED
+  "private company data": CRED
+  "company data": CRED
+  "company data aggregator": CRED
+  "deal & company database": CRED
+
+  # NEWS
+  "financial newspaper": NEWS
+  "financial news": NEWS
+  "financial news / distressed": NEWS
+  "financial news / distressed m&a": NEWS
+  "financial news – insolvency section": NEWS
+  "financial deals news": NEWS
+  "deal news": NEWS
+  "financial magazine": NEWS
+  "business news": NEWS
+  "business news (regional)": NEWS
+  "business news – business section": NEWS
+  "business news – business": NEWS
+  "business paper": NEWS
+  "business weekly": NEWS
+  "business magazine": NEWS
+  "industrial business magazine": NEWS
+  "news – business section": NEWS
+  "news – business": NEWS
+  "news / business section": NEWS
+  "legal news": NEWS
+  "legal/industry news": NEWS
+  "legal updates / insolvency": NEWS
+  "listed company news": NEWS
+  "cfo/restructuring news": NEWS
+  "private credit news": NEWS
+  "leveraged finance news": NEWS
+  "business radio/online": NEWS
+  "industry news": NEWS
+  "restructuring publication": NEWS
+  "restructuring intelligence": NEWS
+  "restructuring / valuation": NEWS
+  "distressed debt intelligence": NEWS
+  "distressed-debt intelligence": NEWS
+  "distressed / alternatives": NEWS
+  "distressed / restructuring research": NEWS
+  "distressed & leveraged finance intelligence": NEWS
+  "distressed business database": NEWS
+  "m&a intelligence": NEWS
+  "deal news / m&a intelligence": NEWS
+  "bankruptcy data platform": NEWS
+  "insolvency estate management": NEWS
+  "insolvency investigator": NEWS
+  "insolvency firm / red flag data": NEWS
+
+  # REGU
+  "securities regulator": REGU
+  "financial regulator": REGU
+  "banking regulator": REGU
+  "central bank": REGU
+  "central bank / regulator": REGU
+  "central bank / supervisor": REGU
+  "central bank / credit ratings": REGU
+  "central bank reports": REGU
+  "banking association": REGU
+  "resolution authority": REGU
+  "eu banking supervisor": REGU
+  "eu banking supervisor – npl": REGU
+  "eu regulator": REGU
+  "eu regulator – npl standards": REGU
+  "eu resolution authority": REGU
+  "eu securities regulator": REGU
+  "eu finance institution": REGU
+  "bank deposit guarantee": REGU
+  "corporate governance body": REGU
+  "tax authority": REGU
+  "sme authority": REGU
+  "ip regulatory body": REGU
+  "free zone authority": REGU
+
+  # MKT
+  "stock exchange": MKT
+  "stock exchange / disclosures": MKT
+  "stock exchange – aim": MKT
+  "stock exchange (smb)": MKT
+  "stock exchange announcements": MKT
+  "stock exchange data": MKT
+  "fixed-income exchange": MKT
+  "bond market": MKT
+  "debt issuance tracker": MKT
+  "financial terminal": MKT
+  "financial data platform": MKT
+
+  # Advisory / commentary / research (mapped to NEWS as commentary-type sources)
+  "restructuring advisor": NEWS
+  "independent restructuring advisor": NEWS
+  "restructuring consultancy": NEWS
+  "restructuring boutique": NEWS
+  "restructuring / valuation": NEWS
+  "turnaround consultancy": NEWS
+  "turnaround firm": NEWS
+  "turnaround / asset advisor": NEWS
+  "turnaround management association": NEWS
+  "turnaround association": NEWS
+  "industry association": NEWS
+  "industry federation": NEWS
+  "industry news": NEWS
+  "law firm insights": NEWS
+  "law firm": NEWS
+  "law firm - insolvency": NEWS
+  "insolvency law firm": NEWS
+  "insolvency firm": NEWS
+  "insolvency firm / advisor": NEWS
+  "insolvency firm / advisory": NEWS
+  "distressed m&a advisor": NEWS
+  "distressed / restructuring research": NEWS
+  "big 4 advisory insights": NEWS
+  "multilateral / macro": NEWS
+  "multilateral / policy": NEWS
+  "multilateral legal framework": NEWS
+  "comparative indicators": NEWS
+  "academic research": NEWS
+  "economic research": NEWS
+  "expert network": NEWS
+  "ai distressed intelligence": NEWS
+  "business intelligence platform": NEWS
+  "business intelligence": NEWS
+  "sme crisis/finance platform": NEWS
+  "regional fund intelligence": NEWS
+  "alternative fund intelligence": NEWS
+  "alternative investments database": NEWS
+  "hedge fund data": NEWS
+  "legal/industry news": NEWS
+
+  # Industry professional / profession bodies — regulator-like commentary
+  "credit profession body": CRED
+  "accounting body": NEWS
+  "accounting/trustee profession body": NEWS
+  "notary profession body": NEWS
+  "insolvency practitioners body": NEWS
+  "insolvency practitioners association": NEWS
+  "insolvency administrators association": NEWS
+  "insolvency association": NEWS
+  "insolvency law association": NEWS
+  "profession body": NEWS
+  "sme association": NEWS
+  "sme association (spain)": NEWS
+  "retail/trade association": NEWS
+  "employer association": NEWS
+  "employers' association research": NEWS
+  "employers' association (france)": NEWS
+  "employers' association (uk)": NEWS
+  "employers' association (germany)": NEWS
+
+  # Government / statistical / aggregator bodies
+  "statistical office": REGU
+  "statistics authority": REGU
+  "judicial statistics": REGU
+  "state auditor": REGU
+  "government body": REGU
+  "government – economic affairs": REGU
+  "state investment body": REGU
+  "government investment bank": REGU
+  "sovereign wealth fund": REGU
+  "eu aggregator portal": INS-REG
+
+  # Credit / NPL
+  "npl servicer": CRED
+  "credit management / npl": CRED
+  "credit management / npl servicer": CRED
+  "asset management company (bad bank)": CRED
+
+  # Legal databases / judicial document search
+  "legal database": REGU
+  "legal intelligence": REGU
+  "legal directory": REGU
+  "legal tech / concurso data": REGU
+  "judicial documents search": REGU
+  "judgments database": REGU
+  "case law database": REGU
+  "court judgments database": REGU
+
+  # Forensic / specialist / catch-all advisory
+  "forensic/restructuring economists": NEWS
+  "insolvency firm / red flag data": NEWS
+  "insolvency investigator": NEWS
+  "directory (fallback)": NEWS
+
+  # Creditor / business services
+  "creditor services portal": CRED
+  "business services portal": REGU
+  "classifieds (business-sale section)": AUCT
+
+# ── Keyword patterns (fallback after exact match) ────────────────────
+# Ordered: first pattern that matches wins. Patterns are lowercase
+# substring checks on the normalized category string. Keep them narrow.
+patterns:
+  # Gazettes
+  - { contains: ["gazette"], code: GAZ }
+  - { contains: ["bulletin"], code: GAZ }
+  - { contains: ["journal"], code: GAZ }
+  # Courts
+  - { contains: ["tribunal"], code: COURT }
+  - { contains: ["court"], code: COURT }
+  # Insolvency registers / info
+  - { contains: ["insolvency register"], code: INS-REG }
+  - { contains: ["bankruptcy register"], code: INS-REG }
+  - { contains: ["insolvency"], code: INS-REG }   # last-resort for INS-REG
+  # Auctions
+  - { contains: ["auction"], code: AUCT }
+  - { contains: ["asset manager", "asset advisor", "asset marketplace"], code: AUCT }
+  # Registry
+  - { contains: ["registry", "register"], code: REG }
+  # Credit / business info
+  - { contains: ["credit bureau", "credit rating", "credit insurance"], code: CRED }
+  - { contains: ["business information", "business info"], code: CRED }
+  # News / press + commentary
+  - { contains: ["newspaper", "news", "magazine", "press", "weekly"], code: NEWS }
+  - { contains: ["advisor", "advisory", "consultancy", "insights", "research"], code: NEWS }
+  # Regulator / supervisor / central bank / government
+  - { contains: ["regulator", "supervisor", "central bank", "authority"], code: REGU }
+  - { contains: ["government", "ministry", "state "], code: REGU }
+  # Markets
+  - { contains: ["exchange", "market"], code: MKT }

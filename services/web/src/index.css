@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    @apply h-full;
+  }
+  body {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  /* Keyboard focus ring — analysts use the keyboard heavily. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-blue-400/70 ring-offset-2 ring-offset-neutral-950;
+  }
+}

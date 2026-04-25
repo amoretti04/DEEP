@@ -1,0 +1,117 @@
+# Unified proceeding-type taxonomy.
+#
+# Per PRD §11.2. Every local procedural label maps to one of four unified
+# buckets; the original label is preserved on the canonical record under
+# `proceeding.proceeding_type_original`.
+#
+# Unified codes:
+#   REORGANIZATION — court-supervised restructuring with going-concern intent
+#   LIQUIDATION    — court-ordered wind-down / asset sale
+#   MORATORIUM     — pre-insolvency breathing space, negotiation phase
+#   RECEIVERSHIP   — secured-creditor-driven appointment (common in UK)
+#   UNKNOWN        — no mapping; parser must route to review
+#
+# The `keywords` entries are lowercase substring matches on the *normalized*
+# proceeding string (see proceedings.py). Keep them narrow; false-positive
+# mappings here contaminate the canonical view of distress across the EU.
+
+codes:
+  REORGANIZATION: "Court-supervised restructuring preserving the business"
+  LIQUIDATION: "Court-supervised wind-down and asset realization"
+  MORATORIUM: "Pre-insolvency negotiation phase, breathing space"
+  RECEIVERSHIP: "Secured-creditor-led appointment"
+
+# Exact labels — left side is normalized (lowercase, whitespace-collapsed).
+exact:
+  # ── Italy (Codice della Crisi d'Impresa e dell'Insolvenza, CCII) ───
+  "concordato preventivo": REORGANIZATION
+  "composizione negoziata": REORGANIZATION
+  "composizione negoziata della crisi": REORGANIZATION
+  "accordo di ristrutturazione": MORATORIUM
+  "accordo di ristrutturazione dei debiti": MORATORIUM
+  "fallimento": LIQUIDATION
+  "liquidazione giudiziale": LIQUIDATION
+  "liquidazione coatta amministrativa": LIQUIDATION
+  "amministrazione straordinaria": REORGANIZATION
+  "amministrazione straordinaria delle grandi imprese": REORGANIZATION
+  "piano attestato di risanamento": MORATORIUM
+  "piano di ristrutturazione soggetto a omologazione": REORGANIZATION
+
+  # ── Germany (InsO, StaRUG) ─────────────────────────────────────────
+  "schutzschirmverfahren": REORGANIZATION
+  "eigenverwaltung": REORGANIZATION
+  "regelinsolvenzverfahren": LIQUIDATION
+  "vorläufiges insolvenzverfahren": MORATORIUM
+  "vorlaeufiges insolvenzverfahren": MORATORIUM
+  "insolvenzplan": REORGANIZATION
+  "starug-verfahren": MORATORIUM
+  "starug": MORATORIUM
+
+  # ── France (Code de commerce, Livre VI) ────────────────────────────
+  "procédure de sauvegarde": REORGANIZATION
+  "procedure de sauvegarde": REORGANIZATION
+  "sauvegarde accélérée": REORGANIZATION
+  "sauvegarde acceleree": REORGANIZATION
+  "redressement judiciaire": REORGANIZATION
+  "liquidation judiciaire": LIQUIDATION
+  "conciliation": MORATORIUM
+  "mandat ad hoc": MORATORIUM
+  "procédure de rétablissement professionnel": LIQUIDATION
+
+  # ── Spain (Ley Concursal / TRLC) ───────────────────────────────────
+  "concurso con convenio": REORGANIZATION
+  "concurso en liquidación": LIQUIDATION
+  "concurso en liquidacion": LIQUIDATION
+  "concurso de acreedores": LIQUIDATION
+  "preconcurso": MORATORIUM
+  "comunicación del artículo 5 bis": MORATORIUM
+  "comunicacion del articulo 5 bis": MORATORIUM
+  "plan de reestructuración": REORGANIZATION
+  "plan de reestructuracion": REORGANIZATION
+
+  # ── UK (IA 1986, CIGA 2020) ────────────────────────────────────────
+  "administration": REORGANIZATION
+  "company voluntary arrangement": REORGANIZATION
+  "cva": REORGANIZATION
+  "restructuring plan": REORGANIZATION
+  "part 26a restructuring plan": REORGANIZATION
+  "scheme of arrangement": REORGANIZATION
+  "moratorium": MORATORIUM
+  "part a1 moratorium": MORATORIUM
+  "creditors voluntary liquidation": LIQUIDATION
+  "creditors' voluntary liquidation": LIQUIDATION
+  "cvl": LIQUIDATION
+  "members voluntary liquidation": LIQUIDATION
+  "members' voluntary liquidation": LIQUIDATION
+  "mvl": LIQUIDATION
+  "compulsory liquidation": LIQUIDATION
+  "winding up": LIQUIDATION
+  "receivership": RECEIVERSHIP
+  "administrative receivership": RECEIVERSHIP
+  "fixed charge receivership": RECEIVERSHIP
+  "lpa receivership": RECEIVERSHIP
+
+  # ── Netherlands (Fw, WHOA) ─────────────────────────────────────────
+  "faillissement": LIQUIDATION
+  "surseance van betaling": MORATORIUM
+  "surséance van betaling": MORATORIUM
+  "whoa": REORGANIZATION
+  "wet homologatie onderhands akkoord": REORGANIZATION
+
+  # ── Switzerland (SchKG) ────────────────────────────────────────────
+  "konkurs": LIQUIDATION
+  "nachlassverfahren": REORGANIZATION
+  "nachlassstundung": MORATORIUM
+  "provisorische nachlassstundung": MORATORIUM
+  "definitive nachlassstundung": MORATORIUM
+
+# Keyword patterns — first match wins; used only when no exact match.
+patterns:
+  - { contains: ["liquidation", "liquidazione", "liquidación", "liquidacion"], code: LIQUIDATION }
+  - { contains: ["faillit", "fallimento", "konkurs"], code: LIQUIDATION }
+  - { contains: ["winding up", "wind-up", "winding-up"], code: LIQUIDATION }
+  - { contains: ["restructur", "reorganiz"], code: REORGANIZATION }
+  - { contains: ["rétablissement", "redressement", "risanamento", "sanierung"], code: REORGANIZATION }
+  - { contains: ["moratorium", "moratoire", "moratoria", "stundung"], code: MORATORIUM }
+  - { contains: ["preconcurso", "preconcurs", "conciliation"], code: MORATORIUM }
+  - { contains: ["receivership", "receiver"], code: RECEIVERSHIP }

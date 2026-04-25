@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CANARY FIXTURE — NOT REAL PUBLIC DATA.
+  Synthetic BOE Sección IV - Registro Público Concursal edictos.
+  Replace with a real captured XML from BOE's open-data endpoint
+  before enabling in production.
+-->
+<sumario>
+  <diario fecha="2026-04-15" numero="091">
+    <seccion num="4" nombre="Administración de Justicia">
+      <departamento nombre="Juzgados de lo Mercantil">
+        <epigrafe nombre="Edictos">
+
+          <item>
+            <identificador>BOE-B-2026-12345</identificador>
+            <fecha_publicacion>2026-04-15</fecha_publicacion>
+            <juzgado>Juzgado de lo Mercantil nº 2 de Barcelona</juzgado>
+            <numero_autos>0456/2026</numero_autos>
+            <deudor>
+              <denominacion>Industrias Ejemplo S.L.</denominacion>
+              <nif_cif>B12345678</nif_cif>
+            </deudor>
+            <tipo_procedimiento>CL</tipo_procedimiento>
+            <fecha_auto>2026-04-10</fecha_auto>
+            <administrador_concursal>
+              <nombre>D. Javier García Martínez</nombre>
+            </administrador_concursal>
+            <texto>
+              Por providencia de fecha 10 de abril de 2026 se ha declarado
+              el concurso en liquidación de la entidad Industrias Ejemplo S.L.
+            </texto>
+          </item>
+
+          <item>
+            <identificador>BOE-B-2026-12346</identificador>
+            <fecha_publicacion>2026-04-15</fecha_publicacion>
+            <juzgado>Juzgado de lo Mercantil nº 1 de Madrid</juzgado>
+            <numero_autos>0789/2026</numero_autos>
+            <deudor>
+              <denominacion>Comercial del Sur S.A.</denominacion>
+              <nif_cif>A98765432</nif_cif>
+            </deudor>
+            <tipo_procedimiento>PC</tipo_procedimiento>
+            <fecha_auto>2026-04-09</fecha_auto>
+            <administrador_concursal>
+              <nombre>Dña. Marta López Pérez</nombre>
+            </administrador_concursal>
+            <texto>
+              Comunicación del artículo 583 TRLC (preconcurso) de
+              Comercial del Sur S.A.
+            </texto>
+          </item>
+
+        </epigrafe>
+      </departamento>
+    </seccion>
+  </diario>
+</sumario>
